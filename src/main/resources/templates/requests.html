@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script>
+    fetch('http://localhost:8080/requests/all', {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
+            'Content-Type': 'application/json'
+        },
+        referrer: 'no-referrer'
+    }).then(function (response) {
+        // The API call was successful!
+        if (response.ok) {
+            return response.json();
+        } else {
+            return Promise.reject(response);
+        }
+    }).then(function (data) {
+        // This is the JSON from our response
+        console.log(data);
+        buildTable(data)
+    }).catch(function (err) {
+        // There was an error
+        console.warn('Something went wrong.', err);
+        window.location.replace(`http://localhost:8082/`);
+    });
+
+    function getDetails(id) {
+        console.log(id)
+        window.location.replace(`http://localhost:8082/requests/` + id);
+    }
+
+    function buildTable(data){
+        var table = document.getElementById('myTable');
+
+        for(var i=0; i<data.length; i++){
+            fullname = data[i].requester.lastName +
+                " " + data[i].requester.firstName +
+                " " + data[i].requester.patronymic;
+            var row = '<tr><td style="border: 1px solid;">' + data[i].id + '</td>' +
+                '<td style="border: 1px solid;">' + data[i].originApp + '</td>' +
+                '<td style="border: 1px solid;">' + data[i].gatewayId + '</td>' +
+                '<td style="border: 1px solid;">' + data[i].requester.iin + '</td>' +
+                '<td style="border: 1px solid;">' + fullname + '</td>' +
+                '<td style="border: 1px solid;">' + data[i].content + '</td>' +
+                '<td style="border: 1px solid;"><button onclick="getDetails(' + data[i].id + ')">Details</button></td></tr>';
+            table.innerHTML += row;
+        }
+    };
+
+
+</script>
+
+    <table class="table table-stripped" style="border: 1px solid;">
+        <tr class="bg-info">
+            <th style="border: 1px solid;">ID</th>
+            <th style="border: 1px solid;">Origin App</th>
+            <th style="border: 1px solid;">Request ID</th>
+            <th style="border: 1px solid;">IIN</th>
+            <th style="border: 1px solid;">Full Name</th>
+            <th style="border: 1px solid;">Content</th>
+            <th style="border: 1px solid;">Details</th>
+        </tr>
+        <tbody id="myTable">
+
+        </tbody>
+
+    </table>
+</body>
+</html>

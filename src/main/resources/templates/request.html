@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script>
+    var baseUrl = (window.location).href;
+    requestId = baseUrl.substring(31)
+    var url = 'http://localhost:8080/requests/' + requestId;
+    var numId = Number(requestId)
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
+            'Content-Type': 'application/json'
+        },
+        referrer: 'no-referrer'
+    }).then(function (response) {
+        // The API call was successful!
+        if (response.ok) {
+            return response.json();
+        } else {
+            return Promise.reject(response);
+        }
+    }).then(function (data) {
+        // This is the JSON from our response
+        console.log(data);
+        numId = data.id;
+        printData(data);
+    }).catch(function (err) {
+        // There was an error
+        console.warn('Something went wrong.', err);
+        window.location.replace(`http://localhost:8082/`);
+    });
+
+    function printData(data){
+        var output = 'ID: ' + data.id + '<br>' +
+            'Origin App: ' + data.originApp + '<br>' +
+            'Gateway ID: ' + data.gatewayId + '<br>' +
+            'IIN: ' + data.requester.iin + '<br>' +
+            'Full Name: ' + data.requester.lastName + ' ' + data.requester.firstName + ' ' + data.requester.patronymic + '<br>' +
+            'Content: ' + data.content +
+            '<hr>' +
+            '<button onclick="makeDecision(\'POSITIVE\')">POSITIVE</button>' +
+            '<button onclick="makeDecision(\'NEGATIVE\')">NEGATIVE</button>';
+        console.log(output)
+        document.getElementById("requestDetails").innerHTML = output
+    }
+
+    function makeDecision(decision){
+        fetch('http://localhost:8080/requests/status', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: requestId,
+                requestStatus: decision
+            }),
+            referrer: 'no-referrer'
+        }).then(function (response) {
+            // The API call was successful!
+            if (response.ok) {
+                return response.json();
+            } else {
+                return Promise.reject(response);
+            }
+        }).then(function (data) {
+            // This is the JSON from our response
+            window.location.replace(`http://localhost:8082/requests`);
+        }).catch(function (err) {
+            // There was an error
+            console.warn('Something went wrong.', err);
+        });
+    }
+
+</script>
+<div id="requestDetails"></div>
+
+</body>
+</html>
